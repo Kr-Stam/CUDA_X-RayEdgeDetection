@@ -1,4 +1,3 @@
-#include "test.cuh"
 #include "convolutions.cuh"
 #include "grayscale.cuh"
 #include "filters.cuh"
@@ -20,8 +19,9 @@ int main() {
 
 	camera.read(src);
 	cv::Mat gray = cv::Mat(src.rows, src.cols, CV_8UC1);
-	cv::Mat gauss = cv::Mat(HEIGHT, WIDTH, CV_8UC3);
-	cv::Mat gauss_gray = cv::Mat(HEIGHT, WIDTH, CV_8UC1);
+	cv::Mat gauss = cv::Mat(src.rows, src.cols, CV_8UC3);
+	cv::Mat gauss_gray = cv::Mat(src.rows, src.cols, CV_8UC1);
+	cv::Mat range_edges = cv::Mat(src.rows, src.cols, CV_8UC1);
 
 	if(!camera.isOpened())
 	{
@@ -36,18 +36,21 @@ int main() {
 		camera.read(src);
 		cv::imshow("Source", src);
 
-		/**
 		gpu::grayscale_avg_3ch_1ch(src.data, gray.data, src.cols, src.rows);
 		cv::imshow("Grayscale", gray);
-		**/
 
 		gpu::conv_3ch_2d_constant(src.data, gauss.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
 		cv::imshow("Gaussian Blur", gauss);
 
-		/**
-		gpu::conv(src.data, gauss_gray.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
-		cv::imshow("Gaussian Blur", gauss);
-		**/
+		//gpu::conv(gray.data, gauss_gray.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
+		gpu::conv_constant(gray.data, gauss_gray.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
+		//gpu::conv_tiled(gray.data, gauss_gray.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
+		cv::imshow("Gaussian Blur Grayscale", gauss_gray);
+
+		gpu::conv_range(gauss_gray.data, range_edges.data, src.cols, src.rows, 3, 3);
+		//gpu::conv_tiled(gray.data, gauss_gray.data, src.cols, src.rows, GAUS_KERNEL_3x3, 3, 3);
+		cv::imshow("Statistical Range Edges", range_edges);
+
 
 		if (cv::waitKey(5) == 27)
 				return 0;
