@@ -602,10 +602,7 @@ __global__ void g_conv_range(const unsigned char* src, unsigned char* dest, int 
 	}
 
 	int range = max - min;
-	if(range != 0)
-		dest[pos] = 0;
-	else
-		dest[pos] = 255;
+	dest[pos] = range;
 }
 
 void gpu::conv_range(const unsigned char* src_h, unsigned char* dest_h, int w, int h, int mw, int mh)
